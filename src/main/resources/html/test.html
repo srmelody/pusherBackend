@@ -18,14 +18,19 @@
                                    //something
         var pusher = new Pusher('6d0b98669f566dfd8421');
         var channel = pusher.subscribe('project-one');
+        var state = {};
         channel.bind('test_event', function(data) {
             alert(data.message);
         });
 
+        decipher = function(message) {
+
+        }
         subscribe = function() {
             var privateChannel = pusher.subscribe('private-project1');
             privateChannel.bind('update', function(data) {
-                alert("private" + data.message);
+                var message = decipher(data.message);
+                alert("private" + message);
             });
         }
 
@@ -45,8 +50,17 @@
             axios.get('/login/' + username).then(function(res ) {
                 console.log("headers", res.headers);
                 console.log("I am now" , username)
+                state.username = res.data.username;
+                state.secret = res.data.secret;
             });
 //            window.location.replace('/login/' + username);
+        }
+        encryptInput = function() {
+            var plainText = document.getElementById("encryptInput").value;
+            axios.get('/encrypt/' + plainText).then(function(res ) {
+                var cipherText = res.data;
+                document.getElementById("encryptedOutput").innerText = cipherText;
+            });
         }
 
     </script>
@@ -58,7 +72,8 @@
 
     <input type="button" onclick="login('sean')" value="i am sean"/>
     <input type="button" onclick="login('linus')" value="i am linus"/>
-
-
+    <input type="textfield" id="encryptInput">
+    <input type="button" onclick="encryptInput()" value="encrypt"/>
+    <span id="encryptedOutput">nothing yet</span>
     </body>
 </head>

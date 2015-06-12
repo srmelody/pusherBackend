@@ -1,21 +1,36 @@
 package com.rallydev.pusher;
 
+import static javax.crypto.Cipher.getInstance;
 import static spark.Spark.*;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.BaseEncoding;
+import com.google.gson.Gson;
 import com.pusher.rest.Pusher;
+import com.sun.crypto.provider.AESKeyGenerator;
+import org.apache.commons.codec.digest.DigestUtils;
 
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.Cookie;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.UnsupportedEncodingException;
+import java.lang.ref.Reference;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.*;
 
 public class PusherServer {
     private static  String app_id = "123751";
+    private static SecretKey secretKey = null;
     private static String key = "6d0b98669f566dfd8421";
     private static String secret = "cc60bde9a3064a89b393";
+    private static Cipher cipher;
+    private static CryptoHolder cryptoHolder = new CryptoHolder();
+
 
     private static Pusher pusher = new Pusher(app_id, key, secret);
     private static void trigger(String channel, String eventName, Object payload) {
@@ -44,13 +59,22 @@ public class PusherServer {
             return key;
 
         });
-        get("/login/:username", "application/json", (req,res)-> {
+        get("encrypt/:plaintext", (req,res) -> {
+          String plaintext = req.params(":plaintext");
+          String cipherText = cryptoHolder.encrypt(plaintext);
+          return cipherText;
+        });
+        get("/login/:username",  (req,res)-> {
             String username = req.params(":username");
             if ( users.containsKey(username) ) {
              // simulates an authentication, obviously we would drop a cookie here, but spark is being finicky.
 //                res.cookie("zsessionid", username);
 //                res.redirect("/test.html");
-                return username;
+                Map responseMap = ImmutableMap.of(
+                        "username", username,
+                        "secret", secretKey.toString());
+              return responseMap;
+
             }
             else {
                 res.status(403);
@@ -58,7 +82,7 @@ public class PusherServer {
             }
 
 
-        }) ;
+        }, new JsonTransformer()) ;
         post("/pusher/auth", (req, res) -> {
             System.out.println(req.params());
             System.out.println(req.attributes());
@@ -95,4 +119,6 @@ public class PusherServer {
     private static String getProjectFromChannel(String channel) {
         return channel.replace("private-", "");
     }
+
+
 }
