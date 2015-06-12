@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<head>
+    <title>Pusher Test</title>
+    <script src="https://rawgit.com/mzabriskie/axios/master/dist/axios.js"></script>
+    <script src="http://js.pusher.com/2.2/pusher.js"></script>
+    <script>
+        Pusher.XHR = function()  {
+                var xhr = new XMLHttpRequest()
+                xhr.withCredentials = true
+                return xhr
+        }
+        // Enable pusher logging - don't include this in production
+        Pusher.log = function(message) {
+            if (window.console && window.console.log) {
+                window.console.log(message);
+            }
+        };
+                                   //something
+        var pusher = new Pusher('6d0b98669f566dfd8421');
+        var channel = pusher.subscribe('project-one');
+        channel.bind('test_event', function(data) {
+            alert(data.message);
+        });
+
+        subscribe = function() {
+            var privateChannel = pusher.subscribe('private-project1');
+            privateChannel.bind('update', function(data) {
+                alert("private" + data.message);
+            });
+        }
+
+
+        var request = window.axios;
+        triggerFromBackend = function() {
+              axios.get('/hello').then(function(res) {
+                  console.log("yay");
+              })
+        }
+        triggerPrivateFromBackend = function() {
+            axios.get('/private').then(function(res) {
+                console.log("private");
+            })
+        }
+        login = function(username) {
+            axios.get('/login/' + username).then(function(res ) {
+                console.log("headers", res.headers);
+                console.log("I am now" , username)
+            });
+//            window.location.replace('/login/' + username);
+        }
+
+    </script>
+
+    <body>
+    <input type="button" onClick="triggerFromBackend()" value="call backend" />
+    <input type="button" onClick="triggerPrivateFromBackend()" value="call private backend" />
+    <input type="button" onclick="subscribe()" value="private subscribe"/>
+
+    <input type="button" onclick="login('sean')" value="i am sean"/>
+    <input type="button" onclick="login('linus')" value="i am linus"/>
+
+
+    </body>
+</head>
