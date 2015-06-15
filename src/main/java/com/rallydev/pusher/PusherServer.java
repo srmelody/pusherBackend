@@ -5,22 +5,9 @@ import static spark.Spark.*;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.BaseEncoding;
-import com.google.gson.Gson;
 import com.pusher.rest.Pusher;
-import com.sun.crypto.provider.AESKeyGenerator;
-import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.Cookie;
-import java.io.UnsupportedEncodingException;
-import java.lang.ref.Reference;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.util.*;
 
 public class PusherServer {
@@ -50,7 +37,7 @@ public class PusherServer {
                 "project2", new Project("project2", "uuid2")
 
         );
-        staticFileLocation("/html");
+        staticFileLocation("/public");
 
         get("/subscribe/:project", (req,res) -> {
             String project = req.params(":project");
@@ -67,12 +54,14 @@ public class PusherServer {
         get("/login/:username",  (req,res)-> {
             String username = req.params(":username");
             if ( users.containsKey(username) ) {
-             // simulates an authentication, obviously we would drop a cookie here, but spark is being finicky.
+             // simulates an authentication, this is an ajax response though so I'm sending a payload instead of dropping
+            // a cookie
 //                res.cookie("zsessionid", username);
-//                res.redirect("/test.html");
+//                res.redirect("/test.public");
                 Map responseMap = ImmutableMap.of(
                         "username", username,
-                        "secret", secretKey.toString());
+                        "secret", cryptoHolder.getKey(),
+                        "iv", cryptoHolder.getIV());
               return responseMap;
 
             }
@@ -86,13 +75,14 @@ public class PusherServer {
         post("/pusher/auth", (req, res) -> {
             System.out.println(req.params());
             System.out.println(req.attributes());
-            System.out.println(req.contentType());
+            System.out.println(req.headers("username"));
+
             String socketId = req.raw().getParameter("socket_id");
 
             String channel = req.raw().getParameter("channel_name");
             System.out.println("socket: " + socketId);
             System.out.println("cookies:" + req.cookies().toString());
-            String user = req.cookie("zsessionid");
+            String user = req.cookie("username");
             List userProjects = users.get(user);
             String projectName = getProjectFromChannel(channel);
             if (userProjects.contains(projectName)) {
@@ -104,7 +94,7 @@ public class PusherServer {
             }
         });
         get("/private", (req,res) -> {
-            trigger("private-project2", "update", Collections.singletonMap("message", "hello world"));
+            trigger("private-project1", "update", Collections.singletonMap("message", "hello world"));
             return "done";
         });
         get("/hello", (req, res) -> {

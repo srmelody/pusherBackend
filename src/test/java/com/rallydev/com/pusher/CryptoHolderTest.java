@@ -18,6 +18,10 @@ public class CryptoHolderTest {
         String s2 = ch.encrypt("foo");
 
         assertEquals(s1, s2);
+
+        assertEquals("foo", ch.decrypt(s1));
+
+
     }
 
 }

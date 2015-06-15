@@ -3,6 +3,9 @@
     <title>Pusher Test</title>
     <script src="https://rawgit.com/mzabriskie/axios/master/dist/axios.js"></script>
     <script src="http://js.pusher.com/2.2/pusher.js"></script>
+    <script src="http://localhost:4567/forge.min.js"></script>
+
+
     <script>
         Pusher.XHR = function()  {
                 var xhr = new XMLHttpRequest()
@@ -22,9 +25,33 @@
         channel.bind('test_event', function(data) {
             alert(data.message);
         });
+        console.log("channel2");
+        var channel2 = pusher.subscribe('project-two');
+        channel2.bind('test_event', function(data) {
+            alert(data.message);
+        });
+
+
 
         decipher = function(message) {
+          return message;
+        }
+        decipher2 = function() {
+            var cipherText = document.getElementById("encryptedOutput").innerText;
+            var key  = state.secret;
+            var decipher = forge.cipher.createCipher('AES-CBC', key);
+            var cipherBytes = forge.util.decode64(cipherText);
+            var iv = forge.util.createBuffer();
+            var data = forge.util.createBuffer();
+            iv.putBytes(forge.util.hexToBytes(state.iv));
+            data.putBytes(forge.util.hexToBytes(cipherText));
 
+            decipher.start({iv: iv});
+            decipher.update(data);
+            decipher.finish();
+            // outputs decrypted hex
+            console.log(decipher.output.toHex());
+            var plaintext = forge.util.decode64(decipher.output.toHex());
         }
         subscribe = function() {
             var privateChannel = pusher.subscribe('private-project1');
@@ -52,6 +79,8 @@
                 console.log("I am now" , username)
                 state.username = res.data.username;
                 state.secret = res.data.secret;
+                state.iv = res.data.iv;
+                document.cookie = "username=" + state.username;
             });
 //            window.location.replace('/login/' + username);
         }

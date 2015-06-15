@@ -2,12 +2,14 @@ package com.rallydev.pusher;
 
 import com.google.common.io.BaseEncoding;
 
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.Base64;
 import java.util.Random;
 
 import static javax.crypto.Cipher.getInstance;
@@ -36,6 +38,25 @@ public class CryptoHolder {
 
     }
     }
+    public String getKey() {
+        return BaseEncoding.base64().encode(secretKey.getEncoded());
+    }
+    public String decrypt(String cipherText) {
+        try {
+            byte[] input = BaseEncoding.base64().decode(cipherText);
+            Cipher cipher = null;
+
+            cipher = getInstance("AES/CBC/PKCS5Padding", "SunJCE");
+
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec);
+
+            byte[] decrypted = cipher.doFinal(input);
+            return new String(decrypted, "UTF-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
     public String encrypt(String message) {
         try {
 
@@ -50,5 +71,9 @@ public class CryptoHolder {
             e.printStackTrace();
         }
         return "";
+    }
+
+    public String getIV() {
+        return BaseEncoding.base64().encode(ivSpec.getIV());
     }
 }

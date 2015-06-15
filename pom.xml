@@ -55,7 +55,7 @@
                 <configuration>
                     <watch>
                         <param>
-                            <on>src/main/resources/html/test.html</on>
+                            <on>src/main/resources/public/test.html</on>
                             <run>compile</run>
                         </param>
                     </watch>
