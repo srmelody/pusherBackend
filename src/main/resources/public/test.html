@@ -4,6 +4,9 @@
     <script src="https://rawgit.com/mzabriskie/axios/master/dist/axios.js"></script>
     <script src="http://js.pusher.com/2.2/pusher.js"></script>
     <script src="http://localhost:4567/forge.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/cipher-core.js"/>-->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/aes.js"></script>-->
 
 
     <script>
@@ -31,22 +34,36 @@
             alert(data.message);
         });
 
-
+        d3 = function() {
+            var cipherText = document.getElementById("encryptedOutput").innerText;
+            var key  = CryptoJS.enc.Base64.parse(state.secret);
+            var options = { iv: CryptoJS.enc.Base64.parse(state.iv),
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7};
+            var pt = CryptoJS.AES.decrypt(
+                    {
+                        ciphertext: CryptoJS.enc.Base64.parse(cipherText),
+                        salt: ""
+                    },
+                    key,
+                    options
+              );
+        }
 
         decipher = function(message) {
           return message;
         }
         decipher2 = function() {
             var cipherText = document.getElementById("encryptedOutput").innerText;
-            var key  = state.secret;
-            var decipher = forge.cipher.createCipher('AES-CBC', key);
+            var key  = forge.util.hexToBytes(state.secret);
+            var decipher = forge.cipher.createDecipher('AES-CBC', key);
             var cipherBytes = forge.util.decode64(cipherText);
             var iv = forge.util.createBuffer();
             var data = forge.util.createBuffer();
             iv.putBytes(forge.util.hexToBytes(state.iv));
-            data.putBytes(forge.util.hexToBytes(cipherText));
+            data.putBytes(cipherBytes);
 
-            decipher.start({iv: iv});
+            decipher.start({iv:iv});
             decipher.update(data);
             decipher.finish();
             // outputs decrypted hex

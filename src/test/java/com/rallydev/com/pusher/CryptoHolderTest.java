@@ -16,7 +16,7 @@ public class CryptoHolderTest {
         CryptoHolder ch = new CryptoHolder();
         String s1 = ch.encrypt("foo");
         String s2 = ch.encrypt("foo");
-
+        System.out.println(s1);
         assertEquals(s1, s2);
 
         assertEquals("foo", ch.decrypt(s1));

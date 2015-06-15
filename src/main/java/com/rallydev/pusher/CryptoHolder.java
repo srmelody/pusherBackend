@@ -4,6 +4,7 @@ import com.google.common.io.BaseEncoding;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -26,11 +27,12 @@ public class CryptoHolder {
 
         KeyGenerator keyGen = KeyGenerator.getInstance("AES");
         keyGen.init(128); // for example
-        this.secretKey = keyGen.generateKey();
+        byte[] bytes = "SecretPassphrase".getBytes();
+        this.secretKey = new SecretKeySpec(bytes, "AES");//keyGen.generateKey();
 
 
-        byte[] ivBytes = new byte[16];
-        new Random().nextBytes(ivBytes);
+        byte[] ivBytes = "SecretPassphrase".getBytes();
+//        new Random().nextBytes(ivBytes);
         ivSpec = new IvParameterSpec(ivBytes);
 
     } catch (NoSuchAlgorithmException e) {
