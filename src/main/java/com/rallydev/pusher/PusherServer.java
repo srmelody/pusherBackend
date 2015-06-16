@@ -94,7 +94,8 @@ public class PusherServer {
             }
         });
         get("/private", (req,res) -> {
-            trigger("private-project1", "update", Collections.singletonMap("message", "hello world"));
+            String cipherText = cryptoHolder.encrypt("hello world");
+            trigger("private-project1", "update", Collections.singletonMap("message", cipherText));
             return "done";
         });
         get("/hello", (req, res) -> {

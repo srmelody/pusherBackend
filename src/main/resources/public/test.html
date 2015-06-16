@@ -34,8 +34,8 @@
             alert(data.message);
         });
 
-        d3 = function() {
-            var cipherText = document.getElementById("encryptedOutput").innerText;
+        decipher = function(message) {
+            var cipherText = message;
             var key  = CryptoJS.enc.Base64.parse(state.secret);
             var options = { iv: CryptoJS.enc.Base64.parse(state.iv),
                 mode: CryptoJS.mode.CBC,
@@ -48,28 +48,11 @@
                     key,
                     options
               );
+
+            return pt.toString(CryptoJS.enc.Utf8);
         }
 
-        decipher = function(message) {
-          return message;
-        }
-        decipher2 = function() {
-            var cipherText = document.getElementById("encryptedOutput").innerText;
-            var key  = forge.util.hexToBytes(state.secret);
-            var decipher = forge.cipher.createDecipher('AES-CBC', key);
-            var cipherBytes = forge.util.decode64(cipherText);
-            var iv = forge.util.createBuffer();
-            var data = forge.util.createBuffer();
-            iv.putBytes(forge.util.hexToBytes(state.iv));
-            data.putBytes(cipherBytes);
 
-            decipher.start({iv:iv});
-            decipher.update(data);
-            decipher.finish();
-            // outputs decrypted hex
-            console.log(decipher.output.toHex());
-            var plaintext = forge.util.decode64(decipher.output.toHex());
-        }
         subscribe = function() {
             var privateChannel = pusher.subscribe('private-project1');
             privateChannel.bind('update', function(data) {
