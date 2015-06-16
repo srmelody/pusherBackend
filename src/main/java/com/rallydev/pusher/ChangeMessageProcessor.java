@@ -41,7 +41,7 @@ public class ChangeMessageProcessor {
         ConsumerConfig config = createConsumerConfig("bld-zookeeper-01.f4tech.com/kafka8", "sean-test");
         consumer = Consumer.createJavaConsumerConnector(config);
 
-        String topic = "smelody-test";
+        String topic = "pusher-test";
         Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
         int numThreads = 4;
         topicCountMap.put(topic, new Integer(numThreads));
