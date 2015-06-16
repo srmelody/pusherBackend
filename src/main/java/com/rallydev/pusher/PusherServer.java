@@ -20,6 +20,7 @@ public class PusherServer {
 
 
     private static Pusher pusher = new Pusher(app_id, key, secret);
+
     private static void trigger(String channel, String eventName, Object payload) {
 
        pusher.trigger(channel,eventName,payload);
@@ -27,6 +28,8 @@ public class PusherServer {
     }
     public static void main(String[] args) {
 
+        ChangeMessageProcessor processor = new ChangeMessageProcessor(cryptoHolder);
+        processor.subscribe(pusher);
         Map<String, String> channels = new HashMap();
         Map<String, List<String>> users = ImmutableMap.of(
                 "sean", ImmutableList.of("project1", "project2"),
