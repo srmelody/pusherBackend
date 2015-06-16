@@ -1,0 +1,5 @@
+{"project": "project1", "message": "something changed"}
+{"project": "project2", "message": "in project 2 something changed"}
+{"project": "project1", "message": "deleted some things"}
+{"project": "project1", "message": "new owner"}
+{"project": "project1", "message": "added more things"}

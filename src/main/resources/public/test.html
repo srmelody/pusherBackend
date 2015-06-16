@@ -59,17 +59,24 @@
         $ = function(id) {
             return document.getElementById(id);
         }
-        /// Subscribes to the private channels.  This will issue the XHR to /pusher/auth
-        privateSubscribe = function() {
-            var privateChannel = pusher.subscribe('private-project1');
+        // Subscribes to the private channels.  This will issue the XHR to /pusher/auth
+
+        subscribeAndAddToDiv = function(channelName, divId) {
+            var privateChannel = pusher.subscribe(channelName);
             privateChannel.bind('update', function(data) {
                 var message = decipher(data.message);
-                var messageDiv = $('messages')
+                var messageDiv = $(divId)
                 var li = document.createElement("li");
                 var text = document.createTextNode(message);
                 li.appendChild(text);
                 messageDiv.appendChild(li);
             });
+        }
+
+        privateSubscribe = function() {
+            subscribeAndAddToDiv('private-project1', 'project1-messages');
+            subscribeAndAddToDiv('private-project2', 'project2-messages');
+
         }
 
         // Triggers the public channel message by calling the backend.
@@ -147,6 +154,11 @@
         <input type="button" onclick="encryptInput()" value="encrypt"/>
         <span id="encryptedOutput">nothing yet</span>
      </div>
-    <div id="messages"></div>
+     <table><tr><th>Project 1</th><th>Project 2</th>
+         <tr><td> <div id="project1-messages"></div></td>
+        </tr>
+     </table>
+
+
     </body>
 </head>
