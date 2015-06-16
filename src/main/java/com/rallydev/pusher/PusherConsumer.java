@@ -1,6 +1,7 @@
 package com.rallydev.pusher;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import com.google.gson.internal.LinkedTreeMap;
 import com.pusher.rest.Pusher;
 import kafka.consumer.ConsumerIterator;
@@ -39,24 +40,31 @@ public class PusherConsumer implements Runnable
 
 
 
-          LinkedTreeMap result = gson.fromJson(message , LinkedTreeMap.class);
-            System.out.println("Map: " + result.toString());
-          handleMessage(result);
+
+          handleMessage(gson, message);
         }
 
 
         System.out.println("Shutting down Thread: " + m_threadNumber);
     }
 
-    private void handleMessage(LinkedTreeMap result) {
-        String channel = "private-" + result.get("project");
-        Object payload = result.get("message");
-        String eventName = "update";
+    private void handleMessage(Gson gson, String message) {
+        try {
+            LinkedTreeMap result = gson.fromJson(message , LinkedTreeMap.class);
+            System.out.println("Map: " + result.toString());
 
-        System.out.println("payload: " + payload);
-        System.out.println("Sending to pusher on channel " + channel);
-        String cipherText = cryptoHolder.encrypt(payload.toString());
-        System.out.println("ciphertext" + cipherText);
-        pusher.trigger(channel,eventName, Collections.singletonMap("message", cipherText));
+            String channel = "private-" + result.get("project");
+            Object payload = result.get("message");
+            String eventName = "update";
+
+            System.out.println("payload: " + payload);
+            System.out.println("Sending to pusher on channel " + channel);
+            String cipherText = cryptoHolder.encrypt(payload.toString());
+            System.out.println("ciphertext" + cipherText);
+            pusher.trigger(channel,eventName, Collections.singletonMap("message", cipherText));
+        }
+        catch (JsonParseException ex)   {
+            System.out.println("error parsing json");
+        }
     }
 }
