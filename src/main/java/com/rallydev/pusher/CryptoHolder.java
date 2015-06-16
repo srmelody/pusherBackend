@@ -6,10 +6,7 @@ import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.*;
 import java.util.Base64;
 import java.util.Random;
 
@@ -23,32 +20,33 @@ public class CryptoHolder {
     private IvParameterSpec ivSpec = null;
 
     public CryptoHolder() {
-    try {
+        try {
 
-        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-        keyGen.init(128); // for example
-        byte[] bytes = "SecretPassphrase".getBytes();
-        this.secretKey = new SecretKeySpec(bytes, "AES");//keyGen.generateKey();
+            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+            keyGen.init(128); // AES 128 bit.  we'll need 256 for production, but I didn't want to require the policy jars for using 256 bit encryption.
+            this.secretKey = keyGen.generateKey();
 
 
-        byte[] ivBytes = "SecretPassphrase".getBytes();
-//        new Random().nextBytes(ivBytes);
-        ivSpec = new IvParameterSpec(ivBytes);
+            byte[] ivBytes = new byte[16];
+            new SecureRandom().nextBytes(ivBytes);
+            ivSpec = new IvParameterSpec(ivBytes);
 
-    } catch (NoSuchAlgorithmException e) {
-        e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
 
+        }
     }
-    }
+
     public String getKey() {
         return BaseEncoding.base64().encode(secretKey.getEncoded());
     }
+
     public String decrypt(String cipherText) {
         try {
             byte[] input = BaseEncoding.base64().decode(cipherText);
-            Cipher cipher = null;
-
-            cipher = getInstance("AES/CBC/PKCS5Padding", "SunJCE");
+            // AES, Chained Block Cipher and PKCS5 padding.
+            // pkcs7 and pkcs5 are compatible padding strategies.
+            Cipher cipher = getInstance("AES/CBC/PKCS5Padding", "SunJCE");
 
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec);
 
@@ -59,6 +57,7 @@ public class CryptoHolder {
         }
         return "";
     }
+
     public String encrypt(String message) {
         try {
 

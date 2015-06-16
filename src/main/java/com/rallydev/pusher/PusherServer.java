@@ -61,7 +61,8 @@ public class PusherServer {
                 Map responseMap = ImmutableMap.of(
                         "username", username,
                         "secret", cryptoHolder.getKey(),
-                        "iv", cryptoHolder.getIV());
+                        "iv", cryptoHolder.getIV(),
+                        "applicationKey", key);
               return responseMap;
 
             }
@@ -72,16 +73,11 @@ public class PusherServer {
 
 
         }, new JsonTransformer()) ;
-        post("/pusher/auth", (req, res) -> {
-            System.out.println(req.params());
-            System.out.println(req.attributes());
-            System.out.println(req.headers("username"));
-
+        post("/realtime/auth", (req, res) -> {
+            // It's a form parameter, which is missing from Spark, hence going to the HttpServletRequest
             String socketId = req.raw().getParameter("socket_id");
-
             String channel = req.raw().getParameter("channel_name");
-            System.out.println("socket: " + socketId);
-            System.out.println("cookies:" + req.cookies().toString());
+
             String user = req.cookie("username");
             List userProjects = users.get(user);
             String projectName = getProjectFromChannel(channel);
@@ -94,7 +90,7 @@ public class PusherServer {
             }
         });
         get("/private", (req,res) -> {
-            String cipherText = cryptoHolder.encrypt("hello world");
+            String cipherText = cryptoHolder.encrypt("hello world " + System.currentTimeMillis());
             trigger("private-project1", "update", Collections.singletonMap("message", cipherText));
             return "done";
         });

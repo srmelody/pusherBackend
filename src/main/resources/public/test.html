@@ -3,44 +3,48 @@
     <title>Pusher Test</title>
     <script src="https://rawgit.com/mzabriskie/axios/master/dist/axios.js"></script>
     <script src="http://js.pusher.com/2.2/pusher.js"></script>
-    <script src="http://localhost:4567/forge.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/cipher-core.js"/>-->
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/aes.js"></script>-->
-
 
     <script>
-        Pusher.XHR = function()  {
-                var xhr = new XMLHttpRequest()
-                xhr.withCredentials = true
-                return xhr
-        }
-        // Enable pusher logging - don't include this in production
-        Pusher.log = function(message) {
-            if (window.console && window.console.log) {
-                window.console.log(message);
-            }
-        };
-                                   //something
-        var pusher = new Pusher('6d0b98669f566dfd8421');
-        var channel = pusher.subscribe('project-one');
-        var state = {};
-        channel.bind('test_event', function(data) {
-            alert(data.message);
-        });
-        console.log("channel2");
-        var channel2 = pusher.subscribe('project-two');
-        channel2.bind('test_event', function(data) {
-            alert(data.message);
-        });
 
-        decipher = function(message) {
-            var cipherText = message;
+        // Initializes pusher and subscribes to a few public channels.
+        initPusher = function(applicationKey) {
+            var options = {
+                authEndpoint :  "/realtime/auth",
+                encrypted: true
+            }
+            var pusher = new Pusher(applicationKey, options );
+
+            // Note that these separate channels all communicate over 1 websocket connection.
+            var channel = pusher.subscribe('project-one');
+
+            channel.bind('test_event', function(data) {
+                alert(data.message);
+            });
+
+            var channel2 = pusher.subscribe('project-two');
+            channel2.bind('test_event', function(data) {
+                alert(data.message);
+            });
+
+            return pusher;
+        }
+
+
+
+        // Deciphers a message.  The state object has the current key and iv (initialization vector) used by the cipher.
+        //  state is populated after our fake authentication, so if the decryption isn't working, reauthenticate since the
+        //  java server is constructing a new IV and secret at runtime.
+        decipher = function(cipherText) {
+
             var key  = CryptoJS.enc.Base64.parse(state.secret);
+            // AES, Chained Block Cipher and PKCS5 padding.
+            // pkcs7 and pkcs5 are compatible padding strategies.
+
             var options = { iv: CryptoJS.enc.Base64.parse(state.iv),
                 mode: CryptoJS.mode.CBC,
                 padding: CryptoJS.pad.Pkcs7};
-            var pt = CryptoJS.AES.decrypt(
+            var plainText = CryptoJS.AES.decrypt(
                     {
                         ciphertext: CryptoJS.enc.Base64.parse(cipherText),
                         salt: ""
@@ -49,40 +53,57 @@
                     options
               );
 
-            return pt.toString(CryptoJS.enc.Utf8);
+            return plainText.toString(CryptoJS.enc.Utf8);
         }
 
-
-        subscribe = function() {
+        $ = function(id) {
+            return document.getElementById(id);
+        }
+        /// Subscribes to the private channels.  This will issue the XHR to /pusher/auth
+        privateSubscribe = function() {
             var privateChannel = pusher.subscribe('private-project1');
             privateChannel.bind('update', function(data) {
                 var message = decipher(data.message);
-                alert("private" + message);
+                var messageDiv = $('messages')
+                var li = document.createElement("li");
+                var text = document.createTextNode(message);
+                li.appendChild(text);
+                messageDiv.appendChild(li);
             });
         }
 
-
-        var request = window.axios;
+        // Triggers the public channel message by calling the backend.
         triggerFromBackend = function() {
               axios.get('/hello').then(function(res) {
                   console.log("yay");
               })
         }
+        // Triggers the public channel message by calling the backend.
+        // since we only subscribe if we are authenticated, this won't do anything until
+        // after authenticating and subscribing.
         triggerPrivateFromBackend = function() {
             axios.get('/private').then(function(res) {
                 console.log("private");
             })
         }
+
+        // A fakey login that returns information about the username (likely we would use a zsessionid in our system
+        // and the AES key and initializion vector.
         login = function(username) {
             axios.get('/login/' + username).then(function(res ) {
-                console.log("headers", res.headers);
+
                 console.log("I am now" , username)
-                state.username = res.data.username;
-                state.secret = res.data.secret;
-                state.iv = res.data.iv;
+                var data = res.data;
+                state.username = data.username;
+                state.secret = data.secret;
+                state.iv = data.iv;
+
+
+                // it's XHR, so we need to set the cookie.
                 document.cookie = "username=" + state.username;
+
             });
-//            window.location.replace('/login/' + username);
+
         }
         encryptInput = function() {
             var plainText = document.getElementById("encryptInput").value;
@@ -92,17 +113,40 @@
             });
         }
 
+        // The are options for pusher's XHR.
+        Pusher.XHR = function()  {
+            var xhr = new XMLHttpRequest()
+            xhr.withCredentials = true
+            return xhr
+        }
+
+        // Enable pusher logging - don't include this in production, but it's useful in prototyping and debugging.
+        Pusher.log = function(message) {
+            if (window.console && window.console.log) {
+                window.console.log(message);
+            }
+        };
+
+        // We might put the application key in the javascript or might get it after the handshake that pulls down
+        // the aes key and the IV.  it's not a secret - the pusher secret is the string we must protect.
+        var pusher = initPusher("6d0b98669f566dfd8421");
+        var state = {};
+
     </script>
 
     <body>
-    <input type="button" onClick="triggerFromBackend()" value="call backend" />
-    <input type="button" onClick="triggerPrivateFromBackend()" value="call private backend" />
-    <input type="button" onclick="subscribe()" value="private subscribe"/>
 
-    <input type="button" onclick="login('sean')" value="i am sean"/>
-    <input type="button" onclick="login('linus')" value="i am linus"/>
-    <input type="textfield" id="encryptInput">
-    <input type="button" onclick="encryptInput()" value="encrypt"/>
-    <span id="encryptedOutput">nothing yet</span>
+     <div>
+        <input type="button" onclick="login('sean')" value="i am sean"/>
+        <input type="button" onclick="login('linus')" value="i am linus"/>
+        <input type="button" onclick="privateSubscribe()" value="subscribe to private channel"/>
+        <input type="button" onClick="triggerFromBackend()" value="trigger public messages" />
+        <input type="button" onClick="triggerPrivateFromBackend()" value="trigger private messages" />
+
+        <input type="textfield" id="encryptInput">
+        <input type="button" onclick="encryptInput()" value="encrypt"/>
+        <span id="encryptedOutput">nothing yet</span>
+     </div>
+    <div id="messages"></div>
     </body>
 </head>
