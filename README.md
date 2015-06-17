@@ -1,8 +1,3 @@
- TODO
-multi project plugin
-
-
-
 ### Getting started
 To run this application:
 
@@ -38,11 +33,11 @@ I followed the instructions in the poxa readme and configure it pretty easily.  
 ### Things we've noticed:
 
  * Multiple channel subscriptions and event binding will all communicate over one web socket connection.  Messages come across as frames that have channel names in the payload.
- * Subscribing to multiple private channels can cause lots of authorization requests.  https://github.com/dirkbonhomme/pusher-js-auth is a solution for batching these requests.
- * You can configure the authentication/authorization endpoint in the pusher client library (/pusher/auth is the default)
+ * Subscribing to multiple private channels can cause lots of authorization requests.  https://github.com/dirkbonhomme/pusher-js-auth is a solution for batching these requests.  This code uses the multi-auth plugin.
+ * You can configure the authentication/authorization endpoint in the pusher client library (/pusher/auth is the default, I changed it to /realtime/auth)
 
 ### Things we need to decide on:
 
-* Where does the authorization endpoint (currently called /pusher/auth in PusherServer.java) reside?  It seems like it should be in the same service as the service that processes change notifications and POSTs to pusher.
-* Is the processing a separate service, pipeline, something else?  Or do we put it into pigeon?  Is Pusher's API really a webhook recipient?
+* Where does the authorization endpoint (currently called /realtime/auth in PusherServer.java) reside?  It seems like it should be in the same service as the service that processes change notifications and POSTs messages to pusher.
+* Is the processing a separate service, pipeline, something else?  Or do we put it into pigeon?  Can Pusher's API be modeled as a webhook recipient?
 

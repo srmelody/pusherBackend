@@ -3,6 +3,7 @@
     <title>Pusher Test</title>
     <script src="https://rawgit.com/mzabriskie/axios/master/dist/axios.js"></script>
     <script src="http://js.pusher.com/2.2/pusher.js"></script>
+    <script src="https://rawgit.com/dirkbonhomme/pusher-js-auth/master/lib/pusher-auth.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
 
     <script>
@@ -11,7 +12,11 @@
         initPusher = function(applicationKey) {
             var options = {
                 authEndpoint :  "/realtime/auth",
-               // I didn't setup encryption for poxa
+                // support to batched auth requests
+                authTransport: 'buffered',
+                authDelay: 200,
+               // I didn't setup encryption for poxa, only pusher.com
+               // I'm skeptical we would worry about configuring certs in onprem.
                 encrypted: true
 
                 // Use these for poxa and disable encryption unless you want to setup TLS certs
@@ -64,7 +69,7 @@
         $ = function(id) {
             return document.getElementById(id);
         }
-        // Subscribes to the private channels.  This will issue the XHR to /pusher/auth
+        // Subscribes to the private channels.  This will issue the XHR to /realtime/auth
 
         subscribeAndAddToDiv = function(channelName, divId) {
             if (pusher.channel(channelName)) {

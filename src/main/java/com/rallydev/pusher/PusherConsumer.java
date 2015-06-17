@@ -51,16 +51,13 @@ public class PusherConsumer implements Runnable
     private void handleMessage(Gson gson, String message) {
         try {
             LinkedTreeMap result = gson.fromJson(message , LinkedTreeMap.class);
-            System.out.println("Map: " + result.toString());
+
 
             String channel = "private-" + result.get("project");
             Object payload = result.get("message");
             String eventName = "update";
 
-            System.out.println("payload: " + payload);
-            System.out.println("Sending to pusher on channel " + channel);
             String cipherText = cryptoHolder.encrypt(payload.toString());
-            System.out.println("ciphertext" + cipherText);
             pusher.trigger(channel,eventName, Collections.singletonMap("message", cipherText));
         }
         catch (JsonParseException ex)   {
