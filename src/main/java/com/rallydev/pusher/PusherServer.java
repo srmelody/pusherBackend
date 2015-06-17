@@ -13,13 +13,15 @@ import java.util.*;
 public class PusherServer {
     private static  String app_id = "123751";
     private static SecretKey secretKey = null;
-    private static String key = "6d0b98669f566dfd8421";
-    private static String secret = "cc60bde9a3064a89b393";
+    private static String pusherKey = "6d0b98669f566dfd8421";
+    private static String pusherSecret = "cc60bde9a3064a89b393";
     private static Cipher cipher;
     private static CryptoHolder cryptoHolder = new CryptoHolder();
 
 
-    private static Pusher pusher = new Pusher(app_id, key, secret);
+    private static Pusher poxaPusher = new Pusher("http://" + pusherKey + ":" + pusherSecret + "@localhost:4444/apps/" + app_id);
+    private static Pusher cloudPusher = new Pusher(app_id, pusherKey, pusherSecret);
+    private static Pusher pusher = null;
 
     private static void trigger(String channel, String eventName, Object payload) {
 
@@ -27,6 +29,7 @@ public class PusherServer {
 
     }
     public static void main(String[] args) {
+        initPusher(args);
 
         ChangeMessageProcessor processor = new ChangeMessageProcessor(cryptoHolder);
         processor.subscribe(pusher);
@@ -65,7 +68,7 @@ public class PusherServer {
                         "username", username,
                         "secret", cryptoHolder.getKey(),
                         "iv", cryptoHolder.getIV(),
-                        "applicationKey", key);
+                        "applicationKey", pusherKey);
               return responseMap;
 
             }
@@ -95,6 +98,10 @@ public class PusherServer {
         get("/private", (req,res) -> {
             String cipherText = cryptoHolder.encrypt("hello world " + System.currentTimeMillis());
             trigger("private-project1", "update", Collections.singletonMap("message", cipherText));
+
+            String project2Text = cryptoHolder.encrypt("hi project2! " + System.currentTimeMillis());
+            trigger("private-project2", "update", Collections.singletonMap("message", project2Text));
+
             return "done";
         });
         get("/hello", (req, res) -> {
@@ -104,6 +111,20 @@ public class PusherServer {
             return "Hello World2";
         }
         );
+    }
+
+    /**
+     * Initializes pusher either to use the cloud version or a local poxa.
+     * @param args
+     */
+    private static void initPusher(String[] args) {
+        if (args.length > 0 && args[0].equals("poxa")) {
+            pusher = poxaPusher;
+        }
+        else {
+            pusher = cloudPusher;
+        }
+
     }
 
     private static String getProjectFromChannel(String channel) {

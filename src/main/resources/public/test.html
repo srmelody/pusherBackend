@@ -11,7 +11,12 @@
         initPusher = function(applicationKey) {
             var options = {
                 authEndpoint :  "/realtime/auth",
+               // I didn't setup encryption for poxa
                 encrypted: true
+
+                // Use these for poxa and disable encryption unless you want to setup TLS certs
+//                wsHost: 'localhost',
+//                wsPort: 8080,
             }
             var pusher = new Pusher(applicationKey, options );
 
@@ -62,6 +67,9 @@
         // Subscribes to the private channels.  This will issue the XHR to /pusher/auth
 
         subscribeAndAddToDiv = function(channelName, divId) {
+            if (pusher.channel(channelName)) {
+                pusher.unsubscribe(channelName);
+            }
             var privateChannel = pusher.subscribe(channelName);
             privateChannel.bind('update', function(data) {
                 var message = decipher(data.message);
@@ -120,6 +128,17 @@
             });
         }
 
+        clearChildren = function(divId) {
+            var messageDiv = $(divId)
+            while (messageDiv.firstChild) {
+                messageDiv.removeChild(messageDiv.firstChild);
+            }
+        }
+        clearMessages = function() {
+            clearChildren("project1-messages")
+            clearChildren("project2-messages")
+        }
+
         // The are options for pusher's XHR.
         Pusher.XHR = function()  {
             var xhr = new XMLHttpRequest()
@@ -154,6 +173,7 @@
         <input type="button" onclick="encryptInput()" value="encrypt"/>
         <span id="encryptedOutput">nothing yet</span>
      </div>
+     <input type="button" onclick="clearMessages()" value="clear"/>
      <table><tr><th>Project 1</th><th>Project 2</th>
          <tr><td> <div id="project1-messages"></div></td>
              <td> <div id="project2-messages"></div></td>
