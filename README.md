@@ -13,17 +13,10 @@ To watch changes to test.html, you can use a maven watch.
     mvn watcher:run
 ````
 
-To send messages to kafka that will be consumed by this and pushed out to the browser, download kafka and build it.  Run
+To send messages to kafka that will be consumed by this and pushed out to the browser, download kafka and build it.  Any JSON that you write to the console will be sent along this topic.  There's a ocm.json file you can also use.
 
 ````
-	./kafka-console-producer.sh --broker-list "bld-kafka8-01:9092" --topic pusher-test
-    {"project": "project1", "message": "something changed from kafka"}
-````
-
-Any JSON that you write to the console will be sent along this topic.  There's a sample.json file you can also use.
-
-````
-     ./kafka-console-producer.sh --broker-list "bld-kafka8-01:9092" --topic pusher-test < /Users/smelody/projects/pusherBackend/sample.json
+     ./kafka-console-producer.sh --broker-list "bld-kafka8-01:9092" --topic pusher-test < /Users/smelody/projects/pusherBackend/ocm.json
 ````
 
 ### Poxa
