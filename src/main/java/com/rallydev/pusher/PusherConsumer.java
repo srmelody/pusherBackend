@@ -62,8 +62,7 @@ public class PusherConsumer implements Runnable
             String channel = "private-" + result.get("project");
             Object action = result.get("action");
             Map<String, Map> changes = (Map<String, Map>) result.get("changes");
-            // TODO encrypt values
-//            Map<String, Object> artifact = (Map<String, Object>) result.get("artifact");
+
 
             String eventName = "update";
             Map changesPayload = encryptValues(changes);
