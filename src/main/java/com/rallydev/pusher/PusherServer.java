@@ -94,6 +94,15 @@ public class PusherServer {
             else {
                 channels.add(singleChannel);
             }
+
+            // hack for the churro prototype, we would need to call the project authorization endpoint on birdseed
+            // or make some smarter authzn decision here.
+            String zsessionid = req.cookie("ZSESSIONID");
+            if ( zsessionid != null ) {
+
+                return pusher.authenticate(socketId, singleChannel);
+
+            }
             String user = req.cookie("username");
             List userProjects = users.get(user);
 

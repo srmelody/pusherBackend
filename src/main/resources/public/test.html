@@ -13,7 +13,7 @@
             var options = {
                 authEndpoint :  "/realtime/auth",
                 // support to batched auth requests
-                authTransport: 'buffered',
+                //authTransport: 'buffered',
                 authDelay: 200,
                // I didn't setup encryption for poxa, only pusher.com
                // I'm skeptical we would worry about configuring certs in onprem.
@@ -121,6 +121,7 @@
 
                 // it's XHR, so we need to set the cookie.
                 document.cookie = "username=" + state.username;
+                document.cookie =  "ZSESSIONID=hack";
 
             });
 

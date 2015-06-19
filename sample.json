@@ -3,3 +3,6 @@
 {"project": "project1", "message": "deleted some things"}
 {"project": "project1", "message": "new owner"}
 {"project": "project1", "message": "added more things"}
+{"project": "23113539057", "message":"project changed"}
+{"project": "23113539057", "message": "something changed for an artifact","artifact": {"oid": 33864595697,"PlanEstimate": 42, "Name": "a new name from pusher"}}
+
