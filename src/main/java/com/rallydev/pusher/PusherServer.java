@@ -14,7 +14,7 @@ public class PusherServer {
     private static  String app_id = "123751";
 
     private static String pusherKey = "6d0b98669f566dfd8421";
-    private static String pusherSecret = "cc60bde9a3064a89b393";
+    private static String pusherSecret = "PUT+THE+SECRET+HERE";
 
     private static CryptoHolder cryptoHolder = new CryptoHolder();
 
